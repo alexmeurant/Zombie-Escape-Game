@@ -36,6 +36,7 @@ function CreateHuman()
   myHuman = CreateSprite(lstSprites, "human", "human/survivor-move_handgun_", 19)
   myHuman.x = screenWidth / 2
   myHuman.y = (screenHeight / 6) * 5
+  myHuman.angle = 0
   myHuman.life = 100
   myHuman.Hurt = function()
     myHuman.life = theHuman.life - 0.1
@@ -76,16 +77,41 @@ function love.update(dt)
   end
 
   if love.keyboard.isDown("left") then
+    theHuman.angle = - 180
     theHuman.x = theHuman.x - 1 * 60 * dt
   end
   if love.keyboard.isDown("up") then
+    theHuman.angle = -90
     theHuman.y = theHuman.y - 1 * 60 * dt
   end
   if love.keyboard.isDown("right") then
+    theHuman.angle = 0
     theHuman.x = theHuman.x + 1 * 60 * dt
   end
   if love.keyboard.isDown("down") then
+    theHuman.angle = 90
     theHuman.y = theHuman.y + 1 * 60 * dt
+  end
+  
+  if love.keyboard.isDown("left") and love.keyboard.isDown("up") then
+    theHuman.angle = - 135
+    theHuman.x = theHuman.x - 1 * dt
+    theHuman.y = theHuman.y - 1 * dt
+  end
+  if love.keyboard.isDown("up") and love.keyboard.isDown("right") then
+    theHuman.angle = -45
+    theHuman.y = theHuman.y - 1 * dt
+    theHuman.x = theHuman.x + 1 * dt
+  end
+  if love.keyboard.isDown("right") and love.keyboard.isDown("down") then
+    theHuman.angle = 45
+    theHuman.x = theHuman.x + 1 * dt
+    theHuman.y = theHuman.y + 1 * dt
+  end
+  if love.keyboard.isDown("down") and love.keyboard.isDown("left") then
+    theHuman.angle = 135
+    theHuman.x = theHuman.x - 1 * dt
+    theHuman.y = theHuman.y + 1 * dt
   end
 
 end
@@ -98,7 +124,7 @@ function love.draw()
   for i,sprite in ipairs(lstSprites) do
     if sprite.visible == true then
       local frame = sprite.images[math.floor(sprite.currentFrame)]       -- We use math.floor because in the Update(dt) function, we add float numbers to the currentframe
-      love.graphics.draw(frame, sprite.x - sprite.width / 2 , sprite.y - sprite.height / 2)
+      love.graphics.draw(frame, sprite.x, sprite.y, math.rad(sprite.angle), 1, 1, sprite.width / 2, sprite.height / 2)
     end
   end
     
