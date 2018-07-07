@@ -141,12 +141,15 @@ function UpdateZombie(pZombie, pEntities)
   elseif pZombie.state == ZSTATES.BITE then
     if ((pZombie.target.x - pZombie.x)^2+(pZombie.target.y - pZombie.y)^2)^0.5 > 5  then
       pZombie.state = ZSTATES.ATTACK
+      biteSound:stop()
     else
       if pZombie.target.Hurt ~= nil then
+        biteSound:play()
         pZombie.target.Hurt()
       end
       if pZombie.target.visible == false then
         pZombie.state = ZSTATES.CHANGEDIR
+        biteSound:stop()
       end
     end
   
@@ -176,9 +179,14 @@ end
 
 function love.load()
   
+  bg = love.graphics.newImage("images/background.jpg")
+  
   love.window.setMode(1024, 768, {resizable=true, vsync=false, minwidth=800, minheight=600})
   
   love.window.setTitle("Escape from the Zombies")
+  
+  zombieSound = love.audio.newSource("sounds/music_game.wav", "stream")
+  biteSound = love.audio.newSource("sounds/bite_sound.wav", "static")
   
   screenWidth = love.graphics.getWidth()
   screenHeight = love.graphics.getHeight()
@@ -193,6 +201,8 @@ function love.load()
 end
 
 function love.update(dt)
+  
+  zombieSound:play()
 
   local i
   for i,sprite in ipairs(lstSprites) do
@@ -247,6 +257,8 @@ function love.update(dt)
 end
 
 function love.draw()
+  
+  love.graphics.draw(bg, 0, 0)
   
   love.graphics.print("LIFE:"..tostring(math.floor(theHuman.life)), 1, 1)
   
