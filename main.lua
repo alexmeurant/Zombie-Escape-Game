@@ -3,6 +3,8 @@ local lstSprites = {}
 
 local theHuman = {}
 
+local theZombie = {}
+
 function CreateSprite(pList, pType, psImageFile, pnFrames)
   
   local mySprite = {}
@@ -49,6 +51,20 @@ function CreateHuman()
   return myHuman
 end
 
+function CreateZombie()
+  
+  local myZombie = CreateSprite(lstSprites, "zombie", "monster/skeleton-move_", 16)
+  myZombie.x = math.random(10, screenWidth - 10)
+  myZombie.y = math.random(10, screenHeight - screenHeight/2)
+  myZombie.angle = 0
+  myZombie.speed = math.random(5,50) / 200
+  
+end
+
+function UpdateZombie()
+  
+end
+
 function love.load()
   
   love.window.setMode(1024, 768, {resizable=true, vsync=false, minwidth=800, minheight=600})
@@ -60,13 +76,23 @@ function love.load()
   
   theHuman = CreateHuman()
   
+  local nZombie
+  for nZombie=1,10 do
+    CreateZombie()
+  end
+  
 end
 
 function love.update(dt)
 
   local i
   for i,sprite in ipairs(lstSprites) do
-    sprite.currentFrame = sprite.currentFrame + 0.2 * 60 * dt
+    if sprite.type == "human" then
+      sprite.currentFrame = sprite.currentFrame + 0.2 * 60 * dt
+    elseif
+      sprite.type == "zombie" then
+      sprite.currentFrame = sprite.currentFrame + 0.2 * 50 * dt
+    end
     if sprite.currentFrame >= #sprite.images then
       sprite.currentFrame = 0
     end
@@ -77,7 +103,7 @@ function love.update(dt)
   end
 
   if love.keyboard.isDown("left") then
-    theHuman.angle = - 180
+    theHuman.angle = -180
     theHuman.x = theHuman.x - 1 * 60 * dt
   end
   if love.keyboard.isDown("up") then
@@ -125,6 +151,10 @@ function love.draw()
     if sprite.visible == true then
       local frame = sprite.images[math.floor(sprite.currentFrame)]       -- We use math.floor because in the Update(dt) function, we add float numbers to the currentframe
       love.graphics.draw(frame, sprite.x, sprite.y, math.rad(sprite.angle), 1, 1, sprite.width / 2, sprite.height / 2)
+      
+      if sprite.type == "zombie" then
+        love.graphics.draw(frame, sprite.x, sprite.y, math.rad(sprite.angle), 1, 1, sprite.width / 2, sprite.height / 2)
+      end
     end
   end
     
