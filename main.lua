@@ -71,7 +71,6 @@ function CreateZombie()
   local myZombie = CreateSprite(lstSprites, "zombie", "monster/skeleton-move_", 16)
   myZombie.x = math.random(10, screenWidth - 10)
   myZombie.y = math.random(10, screenHeight/2 - 10)
-  myZombie.angle = 0
   myZombie.speed = math.random(10,30)/50
   
   myZombie.range = math.random(10, 150)
@@ -81,7 +80,7 @@ function CreateZombie()
 end
 
 function UpdateZombie(pZombie, pEntities)
-  
+
   if pZombie.state == ZSTATES.NONE then
     pZombie.state = ZSTATES.CHANGEDIR
   elseif pZombie.state == ZSTATES.WALK then
@@ -136,11 +135,12 @@ function UpdateZombie(pZombie, pEntities)
     else
       -- Attack!!!
       local destX, destY
-      destX = math.random(pZombie.target.x-20, pZombie.target.x+20)
-      destY = math.random(pZombie.target.y-20, pZombie.target.y+20)
+      destX = math.random(pZombie.target.x, pZombie.target.x)
+      destY = math.random(pZombie.target.y, pZombie.target.y)
       local angle = math.angle(pZombie.x, pZombie.y, destX, destY)
       pZombie.vx = pZombie.speed * 2 * 60 * math.cos(angle)
       pZombie.vy = pZombie.speed * 2 * 60 * math.sin(angle)
+      pZombie.angle = angle
     end
     
   elseif pZombie.state == ZSTATES.BITE then
@@ -162,7 +162,7 @@ function UpdateZombie(pZombie, pEntities)
     local angle = math.angle(pZombie.x, pZombie.y, math.random(0, screenWidth), math.random(0, screenHeight))
     pZombie.vx = pZombie.speed * 60 * math.cos(angle)
     pZombie.vy = pZombie.speed * 60 * math.sin(angle)
-  
+    pZombie.angle = angle
     pZombie.state = ZSTATES.WALK
   end
 
@@ -282,8 +282,9 @@ function love.draw()
   for i,sprite in ipairs(lstSprites) do
     if sprite.visible == true then
       local frame = sprite.images[math.floor(sprite.currentFrame)]       -- We use math.floor because in the Update(dt) function, we add float numbers to the currentframe
+      if sprite.type == "human" then
       love.graphics.draw(frame, sprite.x, sprite.y, math.rad(sprite.angle), 1, 1, sprite.width / 2, sprite.height / 2)
-      
+      end
       if sprite.type == "zombie" then
         love.graphics.draw(frame, sprite.x, sprite.y, sprite.angle, 1, 1, sprite.width / 2, sprite.height / 2)
         if sprite.state == ZSTATES.ATTACK then
