@@ -14,6 +14,11 @@ ZSTATES.CHANGEDIR = "change"
 
 local imgAlert = love.graphics.newImage("images/alert.png")
 
+-- Returns the distance between two points.
+function math.dist(x1,y1, x2,y2) return ((x2-x1)^2+(y2-y1)^2)^0.5 end
+
+-- Returns the angle between two points.
+function math.angle(x1,y1, x2,y2) return math.atan2(y2-y1, x2-x1) end
 
 function CreateSprite(pList, pType, psImageFile, pnFrames)
   
@@ -65,7 +70,7 @@ function CreateZombie()
   
   local myZombie = CreateSprite(lstSprites, "zombie", "monster/skeleton-move_", 16)
   myZombie.x = math.random(10, screenWidth - 10)
-  myZombie.y = math.random(10, screenHeight - 10)
+  myZombie.y = math.random(10, screenHeight/2 - 10)
   myZombie.angle = 0
   myZombie.speed = math.random(10,30)/50
   
@@ -107,7 +112,7 @@ function UpdateZombie(pZombie, pEntities)
     local i
     for i,sprite in ipairs(pEntities) do
       if sprite.type == "human" and sprite.visible == true then
-        local distance = ((sprite.x - pZombie.x)^2+(sprite.y - pZombie.y)^2)^0.5
+        local distance = math.dist(sprite.x, sprite.y, pZombie.x, pZombie.y)
         if distance < pZombie.range then
           pZombie.state = ZSTATES.ATTACK
           pZombie.target = sprite
@@ -119,11 +124,11 @@ function UpdateZombie(pZombie, pEntities)
     
     if pZombie.target == nil then
       pZombie.state = ZSTATES.CHANGEDIR
-    elseif ((pZombie.target.x - pZombie.x)^2+(pZombie.target.y - pZombie.y)^2)^0.5 > pZombie.range    
+    elseif math.dist(pZombie.target.x, pZombie.target.y, pZombie.x, pZombie.y) > pZombie.range    
         and pZombie.target.type == "human" then
       pZombie.state = ZSTATES.CHANGEDIR
       print("Lost contact")
-    elseif ((pZombie.target.x - pZombie.x)^2+(pZombie.target.y - pZombie.y)^2)^0.5 < 5 
+    elseif math.dist(pZombie.target.x, pZombie.target.y, pZombie.x, pZombie.y) < 5 
         and pZombie.target.type == "human" then
       pZombie.state = ZSTATES.BITE
       pZombie.vx = 0
@@ -133,13 +138,13 @@ function UpdateZombie(pZombie, pEntities)
       local destX, destY
       destX = math.random(pZombie.target.x-20, pZombie.target.x+20)
       destY = math.random(pZombie.target.y-20, pZombie.target.y+20)
-      local angle = math.atan2(destY -pZombie.y, destX - pZombie.x)
+      local angle = math.angle(pZombie.x, pZombie.y, destX, destY)
       pZombie.vx = pZombie.speed * 2 * 60 * math.cos(angle)
       pZombie.vy = pZombie.speed * 2 * 60 * math.sin(angle)
     end
     
   elseif pZombie.state == ZSTATES.BITE then
-    if ((pZombie.target.x - pZombie.x)^2+(pZombie.target.y - pZombie.y)^2)^0.5 > 5  then
+    if math.dist(pZombie.target.x, pZombie.target.y, pZombie.x, pZombie.y) > 5  then
       pZombie.state = ZSTATES.ATTACK
       biteSound:stop()
     else
@@ -154,9 +159,9 @@ function UpdateZombie(pZombie, pEntities)
     end
   
   elseif pZombie.state == ZSTATES.CHANGEDIR then
-    local angleDirection = math.atan2(math.random(0, screenHeight) - pZombie.y, math.random(0, screenWidth) - pZombie.x)
-    pZombie.vx = pZombie.speed * 60 * math.cos(angleDirection)
-    pZombie.vy = pZombie.speed * 60 * math.sin(angleDirection)
+    local angle = math.angle(pZombie.x, pZombie.y, math.random(0, screenWidth), math.random(0, screenHeight))
+    pZombie.vx = pZombie.speed * 60 * math.cos(angle)
+    pZombie.vy = pZombie.speed * 60 * math.sin(angle)
   
     pZombie.state = ZSTATES.WALK
   end
@@ -185,7 +190,8 @@ function love.load()
   
   love.window.setTitle("Escape from the Zombies")
   
-  zombieSound = love.audio.newSource("sounds/music_game.wav", "stream")
+  gameMusic = love.audio.newSource("sounds/music_game.mp3", "stream")
+  zombieSound = love.audio.newSource("sounds/zombie_sound.wav", "stream")
   biteSound = love.audio.newSource("sounds/bite_sound.wav", "static")
   
   screenWidth = love.graphics.getWidth()
@@ -203,6 +209,8 @@ end
 function love.update(dt)
   
   zombieSound:play()
+  zombieSound:setVolume(0.5)
+  gameMusic:play()
 
   local i
   for i,sprite in ipairs(lstSprites) do
@@ -260,7 +268,7 @@ function love.draw()
   
   love.graphics.draw(bg, 0, 0)
   
-  love.graphics.print("LIFE:"..tostring(math.floor(theHuman.life)), 1, 1)
+  love.graphics.print("LIFE:"..tostring(math.floor(theHuman.life)), 10, 10)
   
   local i
   for i,sprite in ipairs(lstSprites) do
@@ -273,7 +281,7 @@ function love.draw()
         if sprite.state == ZSTATES.ATTACK then
           love.graphics.draw(imgAlert,
             sprite.x - imgAlert:getWidth()/2,
-            sprite.y - sprite.height - 2)
+            sprite.y - 40)
         end
       end
     end
