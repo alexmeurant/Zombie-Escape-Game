@@ -234,19 +234,27 @@ function love.update(dt)
 
   if love.keyboard.isDown("left") then
     theHuman.angle = -180
-    theHuman.x = theHuman.x - 2 * 60 * dt
+    if theHuman.x >= 30 then
+      theHuman.x = theHuman.x - 2 * 60 * dt
+    end
   end
   if love.keyboard.isDown("up") then
     theHuman.angle = -90
-    theHuman.y = theHuman.y - 2 * 60 * dt
+    if theHuman.y >= 30 then
+      theHuman.y = theHuman.y - 2 * 60 * dt
+    end
   end
   if love.keyboard.isDown("right") then
     theHuman.angle = 0
-    theHuman.x = theHuman.x + 2 * 60 * dt
+    if theHuman.x <= screenWidth - 30 then
+      theHuman.x = theHuman.x + 2 * 60 * dt
+    end
   end
   if love.keyboard.isDown("down") then
     theHuman.angle = 90
-    theHuman.y = theHuman.y + 2 * 60 * dt
+    if theHuman.y <= screenHeight - 30 then
+      theHuman.y = theHuman.y + 2 * 60 * dt
+    end
   end
   
   if love.keyboard.isDown("left") and love.keyboard.isDown("up") then
