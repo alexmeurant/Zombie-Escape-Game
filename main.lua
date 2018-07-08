@@ -14,6 +14,13 @@ ZSTATES.CHANGEDIR = "change"
 
 local imgAlert = love.graphics.newImage("images/alert.png")
 
+-- Import a dynamic light library
+local LightWorld = require("shadows.LightWorld")
+local Light = require("shadows.Light")
+
+-- Create a light world
+newLightWorld = LightWorld:new()
+
 -- Returns the distance between two points.
 function math.dist(x1,y1, x2,y2) return ((x2-x1)^2+(y2-y1)^2)^0.5 end
 
@@ -126,7 +133,6 @@ function UpdateZombie(pZombie, pEntities)
     elseif math.dist(pZombie.target.x, pZombie.target.y, pZombie.x, pZombie.y) > pZombie.range    
         and pZombie.target.type == "human" then
       pZombie.state = ZSTATES.CHANGEDIR
-      print("Lost contact")
     elseif math.dist(pZombie.target.x, pZombie.target.y, pZombie.x, pZombie.y) < 5 
         and pZombie.target.type == "human" then
       pZombie.state = ZSTATES.BITE
@@ -197,16 +203,29 @@ function love.load()
   screenWidth = love.graphics.getWidth()
   screenHeight = love.graphics.getHeight()
   
+  -- Resizes the light world to fit a custom window size
+  newLightWorld:Resize(screenWidth, screenHeight)
+  
   theHuman = CreateHuman()
   
+  -- Create a light on the light world with a custom radius
+  newLight = Light:new(newLightWorld, 200)
+  -- Set the light's color to white
+  newLight:SetColor(255, 255, 255, 255)
+  -- Set the light's position
+  newLight:SetPosition(theHuman.x+100, theHuman.y+10)
+  
   local nZombie
-  for nZombie=1,50 do
+  for nZombie=1,100 do
     CreateZombie()
   end
   
 end
 
 function love.update(dt)
+  
+  -- Recalculate the light world
+	newLightWorld:Update()
   
   zombieSound:play()
   zombieSound:setVolume(0.5)
@@ -237,44 +256,54 @@ function love.update(dt)
     if theHuman.x >= 30 then
       theHuman.x = theHuman.x - 2 * 60 * dt
     end
+    newLight:SetPosition(theHuman.x-100, theHuman.y-10)
   end
   if love.keyboard.isDown("up") then
     theHuman.angle = -90
     if theHuman.y >= 30 then
       theHuman.y = theHuman.y - 2 * 60 * dt
     end
+    newLight:SetPosition(theHuman.x+10, theHuman.y-100)
   end
   if love.keyboard.isDown("right") then
     theHuman.angle = 0
     if theHuman.x <= screenWidth - 30 then
       theHuman.x = theHuman.x + 2 * 60 * dt
     end
+    newLight:SetPosition(theHuman.x+100, theHuman.y+10)
   end
   if love.keyboard.isDown("down") then
     theHuman.angle = 90
     if theHuman.y <= screenHeight - 30 then
       theHuman.y = theHuman.y + 2 * 60 * dt
     end
+    newLight:SetPosition(theHuman.x-10, theHuman.y+100)
   end
   
   if love.keyboard.isDown("left") and love.keyboard.isDown("up") then
     theHuman.angle = - 135
+    newLight:SetPosition(theHuman.x-50, theHuman.y-80)
   end
   if love.keyboard.isDown("up") and love.keyboard.isDown("right") then
     theHuman.angle = -45
+    newLight:SetPosition(theHuman.x+70, theHuman.y-70)
   end
   if love.keyboard.isDown("right") and love.keyboard.isDown("down") then
     theHuman.angle = 45
+    newLight:SetPosition(theHuman.x+70, theHuman.y+70)
   end
   if love.keyboard.isDown("down") and love.keyboard.isDown("left") then
     theHuman.angle = 135
+    newLight:SetPosition(theHuman.x-80, theHuman.y+60)
   end
-
+  
 end
 
 function love.draw()
   
   love.graphics.draw(bg, 0, 0)
+  
+  
   
   love.graphics.print("LIFE:"..tostring(math.floor(theHuman.life)), 10, 10)
   
@@ -295,6 +324,7 @@ function love.draw()
       end
     end
   end
-    
+  -- Draw the light world with white color
+	newLightWorld:Draw()
 end
 
