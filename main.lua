@@ -21,6 +21,9 @@ local Light = require("shadows.Light")
 -- Create a light world
 newLightWorld = LightWorld:new()
 
+-- Display the game menu
+current_screen = "menu"
+
 -- Returns the distance between two points.
 function math.dist(x1,y1, x2,y2) return ((x2-x1)^2+(y2-y1)^2)^0.5 end
 
@@ -63,10 +66,11 @@ function CreateHuman()
   myHuman.angle = 0
   myHuman.life = 100
   myHuman.Hurt = function()
-    myHuman.life = theHuman.life - 0.1
+    myHuman.life = theHuman.life - 0.05
     if myHuman.life <= 0 then
       myHuman.life = 0
       myHuman.visible = false
+      current_screen = "gameover"
     end
   end
   
@@ -191,6 +195,8 @@ end
 function love.load()
   
   bg = love.graphics.newImage("images/background.jpg")
+  menu_bg = love.graphics.newImage("images/bg-menu.jpg")
+  gameover_bg = love.graphics.newImage("images/bg-gameover.jpg")
   
   love.window.setMode(1024, 768, {resizable=true, vsync=false, minwidth=800, minheight=600})
   
@@ -224,107 +230,150 @@ end
 
 function love.update(dt)
   
-  -- Recalculate the light world
-	newLightWorld:Update()
-  
-  zombieSound:play()
-  zombieSound:setVolume(0.5)
-  gameMusic:play()
-
-  local i
-  for i,sprite in ipairs(lstSprites) do
-    if sprite.type == "human" then
-      sprite.currentFrame = sprite.currentFrame + 0.2 * 60 * dt
-    elseif
-      sprite.type == "zombie" then
-      sprite.currentFrame = sprite.currentFrame + 0.2 * 50 * dt
-    end
-    if sprite.currentFrame >= #sprite.images then
-      sprite.currentFrame = 0
-    end
-    -- Velocity
-    sprite.x = sprite.x + sprite.vx * dt
-    sprite.y = sprite.y + sprite.vy * dt
+  if current_screen == "menu" then
     
-    if sprite.type == "zombie" then
-      UpdateZombie(sprite, lstSprites)
+    gameMusic:play()
     end
-  end
+    
+    if current_screen == "game" then
+    
+    gameMusic:setVolume(0.1)
+    
+    -- Recalculate the light world
+    newLightWorld:Update()
+    
+    zombieSound:play()
+    zombieSound:setVolume(0.3)
+    
+    local i
+    for i,sprite in ipairs(lstSprites) do
+      if sprite.type == "human" then
+        sprite.currentFrame = sprite.currentFrame + 0.2 * 60 * dt
+      elseif
+        sprite.type == "zombie" then
+        sprite.currentFrame = sprite.currentFrame + 0.2 * 50 * dt
+      end
+      if sprite.currentFrame >= #sprite.images then
+        sprite.currentFrame = 0
+      end
+      -- Velocity
+      sprite.x = sprite.x + sprite.vx * dt
+      sprite.y = sprite.y + sprite.vy * dt
+      
+      if sprite.type == "zombie" then
+        UpdateZombie(sprite, lstSprites)
+      end
+    end
 
-  if love.keyboard.isDown("left") then
-    theHuman.angle = -180
-    if theHuman.x >= 30 then
-      theHuman.x = theHuman.x - 2 * 60 * dt
+    if love.keyboard.isDown("left") then
+      theHuman.angle = -180
+      if theHuman.x >= 30 then
+        theHuman.x = theHuman.x - 2 * 60 * dt
+      end
+      newLight:SetPosition(theHuman.x-100, theHuman.y-10)
     end
-    newLight:SetPosition(theHuman.x-100, theHuman.y-10)
-  end
-  if love.keyboard.isDown("up") then
-    theHuman.angle = -90
-    if theHuman.y >= 30 then
-      theHuman.y = theHuman.y - 2 * 60 * dt
+    if love.keyboard.isDown("up") then
+      theHuman.angle = -90
+      if theHuman.y >= 30 then
+        theHuman.y = theHuman.y - 2 * 60 * dt
+      end
+      newLight:SetPosition(theHuman.x+10, theHuman.y-100)
     end
-    newLight:SetPosition(theHuman.x+10, theHuman.y-100)
-  end
-  if love.keyboard.isDown("right") then
-    theHuman.angle = 0
-    if theHuman.x <= screenWidth - 30 then
-      theHuman.x = theHuman.x + 2 * 60 * dt
+    if love.keyboard.isDown("right") then
+      theHuman.angle = 0
+      if theHuman.x <= screenWidth - 30 then
+        theHuman.x = theHuman.x + 2 * 60 * dt
+      end
+      newLight:SetPosition(theHuman.x+100, theHuman.y+10)
     end
-    newLight:SetPosition(theHuman.x+100, theHuman.y+10)
-  end
-  if love.keyboard.isDown("down") then
-    theHuman.angle = 90
-    if theHuman.y <= screenHeight - 30 then
-      theHuman.y = theHuman.y + 2 * 60 * dt
+    if love.keyboard.isDown("down") then
+      theHuman.angle = 90
+      if theHuman.y <= screenHeight - 30 then
+        theHuman.y = theHuman.y + 2 * 60 * dt
+      end
+      newLight:SetPosition(theHuman.x-10, theHuman.y+100)
     end
-    newLight:SetPosition(theHuman.x-10, theHuman.y+100)
-  end
-  
-  if love.keyboard.isDown("left") and love.keyboard.isDown("up") then
-    theHuman.angle = - 135
-    newLight:SetPosition(theHuman.x-50, theHuman.y-80)
-  end
-  if love.keyboard.isDown("up") and love.keyboard.isDown("right") then
-    theHuman.angle = -45
-    newLight:SetPosition(theHuman.x+70, theHuman.y-70)
-  end
-  if love.keyboard.isDown("right") and love.keyboard.isDown("down") then
-    theHuman.angle = 45
-    newLight:SetPosition(theHuman.x+70, theHuman.y+70)
-  end
-  if love.keyboard.isDown("down") and love.keyboard.isDown("left") then
-    theHuman.angle = 135
-    newLight:SetPosition(theHuman.x-80, theHuman.y+60)
+    
+    if love.keyboard.isDown("left") and love.keyboard.isDown("up") then
+      theHuman.angle = - 135
+      newLight:SetPosition(theHuman.x-50, theHuman.y-80)
+    end
+    if love.keyboard.isDown("up") and love.keyboard.isDown("right") then
+      theHuman.angle = -45
+      newLight:SetPosition(theHuman.x+70, theHuman.y-70)
+    end
+    if love.keyboard.isDown("right") and love.keyboard.isDown("down") then
+      theHuman.angle = 45
+      newLight:SetPosition(theHuman.x+70, theHuman.y+70)
+    end
+    if love.keyboard.isDown("down") and love.keyboard.isDown("left") then
+      theHuman.angle = 135
+      newLight:SetPosition(theHuman.x-80, theHuman.y+60)
+    end
   end
   
 end
 
-function love.draw()
+function drawGame()
   
-  love.graphics.draw(bg, 0, 0)
-  
-  
-  
-  love.graphics.print("LIFE:"..tostring(math.floor(theHuman.life)), 10, 10)
-  
-  local i
-  for i,sprite in ipairs(lstSprites) do
-    if sprite.visible == true then
-      local frame = sprite.images[math.floor(sprite.currentFrame)]       -- We use math.floor because in the Update(dt) function, we add float numbers to the currentframe
-      if sprite.type == "human" then
-      love.graphics.draw(frame, sprite.x, sprite.y, math.rad(sprite.angle), 1, 1, sprite.width / 2, sprite.height / 2)
-      end
-      if sprite.type == "zombie" then
-        love.graphics.draw(frame, sprite.x, sprite.y, sprite.angle, 1, 1, sprite.width / 2, sprite.height / 2)
-        if sprite.state == ZSTATES.ATTACK then
-          love.graphics.draw(imgAlert,
-            sprite.x - imgAlert:getWidth()/2,
-            sprite.y - 40)
+    love.graphics.draw(bg, 0, 0)
+    
+    local i
+    for i,sprite in ipairs(lstSprites) do
+      if sprite.visible == true then
+        local frame = sprite.images[math.floor(sprite.currentFrame)]       -- We use math.floor because in the Update(dt) function, we add float numbers to the currentframe
+        if sprite.type == "human" then
+        love.graphics.draw(frame, sprite.x, sprite.y, math.rad(sprite.angle), 1, 1, sprite.width / 2, sprite.height / 2)
+        end
+        if sprite.type == "zombie" then
+          love.graphics.draw(frame, sprite.x, sprite.y, sprite.angle, 1, 1, sprite.width / 2, sprite.height / 2)
+          if sprite.state == ZSTATES.ATTACK then
+            love.graphics.draw(imgAlert,
+              sprite.x - imgAlert:getWidth()/2,
+              sprite.y - 40)
+          end
         end
       end
     end
+    
+    -- Draw the light world with white color
+    newLightWorld:Draw()
+    
+    -- Draw human life
+    love.graphics.print("LIFE:"..tostring(math.floor(theHuman.life)), 10, 10)
   end
-  -- Draw the light world with white color
-	newLightWorld:Draw()
+  
+  function drawMenu()
+    love.graphics.draw(menu_bg, 0, 0)
+  end
+  
+  function drawGameOver()
+    love.graphics.draw(gameover_bg, 0, 0)
+  end
+
+function love.draw()
+  
+  if current_screen == "game" then
+    drawGame()
+  elseif current_screen == "menu" then
+    drawMenu()
+  elseif current_screen == "gameover" then
+    drawGameOver()
+  end
+  
+end
+
+function love.keypressed(key)
+  
+  if current_screen == "menu" then
+    if key == "space" then
+      current_screen = "game"
+    end
+  elseif current_screen == "gameover" then
+    if key == "space" then
+      love.event.quit( "restart" )
+    end
+  end
+  
 end
 
